@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Heathens Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAFC; --ink:#14151A; --muted:#75798A; --line:#E7E7EE;
+    --violet:#5B34E0; --violet-deep:#4626B8; --violet-tint:#F1EDFD;
+    --moss:#1B9D6B; --moss-tint:#EAF8F1; --rust:#E0562F; --rust-tint:#FDEEE8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .disp{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select{font-family:inherit;}
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:#E4E1F5; border-radius:8px;}
+
+  .wrap{max-width:760px; margin:0 auto; padding:32px 20px 96px;}
+  @media(min-width:640px){ .wrap{padding:48px 24px 48px;} }
+
+  .btn{border-radius:12px; font-weight:600; font-size:14px; padding:10px 16px; border:1px solid transparent; display:inline-flex; align-items:center; gap:6px; transition:transform .1s ease, background .15s ease;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--violet); color:#fff;}
+  .btn-primary:disabled{background:#D9D3F7; cursor:not-allowed;}
+  .btn-ghost{background:#fff; color:var(--ink); border-color:var(--line);}
+  .btn-ghost.danger{color:var(--rust); border-color:var(--rust);}
+  .btn-block{width:100%; justify-content:center;}
+
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:7px 13px; border-radius:999px; font-size:14px; font-weight:500; border:1px solid var(--line); background:#fff; color:var(--ink); transition:all .12s ease;}
+  .chip.active{background:var(--violet); border-color:var(--violet); color:#fff;}
+  .chip .x{border-radius:999px; padding:2px; display:inline-flex;}
+  .chip .x:hover{background:rgba(255,255,255,.2);}
+  .chip:not(.active) .x:hover{background:rgba(0,0,0,.08);}
+
+  .field-label{font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.02em;}
+  .input, .select{width:100%; margin-top:6px; padding:10px 13px; border-radius:12px; border:1px solid var(--line); outline:none; font-size:14px; background:#fff;}
+  .input:focus, .select:focus{border-color:var(--violet);}
+
+  .card{background:#fff; border:1px solid var(--line); border-radius:16px;}
+  .stub{
+    background-image: radial-gradient(circle at 0 50%, transparent 7px, #fff 7.5px), radial-gradient(circle at 100% 50%, transparent 7px, #fff 7.5px);
+    background-position:left center, right center; background-size:1px 100%,1px 100%; background-repeat:no-repeat;
+  }
+
+  .modal-overlay{position:fixed; inset:0; z-index:50; display:flex; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.4);}
+  @media(min-width:640px){ .modal-overlay{align-items:center;} }
+  .modal{background:#fff; width:100%; max-height:92vh; overflow-y:auto; border-top-left-radius:20px; border-top-right-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid var(--line); animation:slideup .15s ease-out;}
+  @media(min-width:640px){ .modal{max-width:460px; border-radius:20px;} .modal.wide{max-width:560px;} }
+  @keyframes slideup{ from{transform:translateY(16px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+  .modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:2;}
+  .modal-body{padding:20px;}
+  .icon-btn{border:none; background:transparent; border-radius:999px; padding:6px; display:inline-flex;}
+  .icon-btn:hover{background:#F3F3F6;}
+
+  .toast-stack{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:70; display:flex; flex-direction:column; gap:8px; align-items:center;}
+  .toast{background:var(--ink); color:#fff; font-size:14px; font-weight:500; padding:10px 16px; border-radius:999px; display:flex; align-items:center; gap:8px; box-shadow:0 8px 20px rgba(0,0,0,.25); animation:slideup .15s ease-out;}
+
+  .tabbar{display:flex; padding:4px; border-radius:12px; background:var(--violet-tint); width:fit-content;}
+  .tabbar button{background:transparent; border:none; padding:6px 16px; border-radius:8px; font-weight:600; font-size:14px; color:var(--muted); text-transform:capitalize;}
+  .tabbar button.active{background:#fff; color:var(--violet);}
+
+  .segtabs{display:flex; gap:20px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .segtabs button{background:none; border:none; padding:0 0 10px; font-size:14px; font-weight:600; color:var(--muted); border-bottom:2px solid transparent; text-transform:capitalize;}
+  .segtabs button.active{color:var(--violet); border-bottom-color:var(--violet);}
+
+  .row-between{display:flex; align-items:center; justify-content:space-between;}
+  .muted{color:var(--muted);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast-root" class="toast-stack"></div>
+
+<script>
+/* ============================================================
+   ICONS (minimal inline SVG, no external icon library)
+   ============================================================ */
+function icon(name, size, color){
+  size = size || 16; color = color || 'currentColor';
+  const s = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+  const paths = {
+    plus: `<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>`,
+    x: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+    chevronDown: `<polyline points="6 9 12 15 18 9"/>`,
+    pencil: `<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>`,
+    trash: `<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>`,
+    arrowRight: `<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>`,
+    arrowLeft: `<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>`,
+    users: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+    receipt: `<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/>`,
+    wallet: `<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>`,
+    check: `<polyline points="20 6 9 17 4 12"/>`,
+    alert: `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`,
+    party: `<path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"/></svg>`, // unused fallback
+  };
+  return `<svg ${s}>${paths[name]||''}</svg>`;
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+let _id = 0;
+const uid = (p) => `${p}_${Date.now().toString(36)}_${(_id++).toString(36)}`;
+const fmt = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+const fmtDate = (iso) => {
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('en-IN',{day:'numeric', month:'short'});
+};
+const fmtRange = (s,e) => {
+  if(!s || !e) return '';
+  const d1=new Date(s+'T00:00:00'), d2=new Date(e+'T00:00:00');
+  const sameMonth = d1.getMonth()===d2.getMonth();
+  const startStr = sameMonth ? d1.getDate() : d1.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  return `${startStr}${sameMonth?'':' '}–${d2.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;
+};
+const CATEGORIES = ['Accommodation','Food','Transport','Activities','Tickets','Shopping','Other'];
+function esc(str){ const d=document.createElement('div'); d.innerText = str==null?'':str; return d.innerHTML; }
+
+/* ============================================================
+   CALCULATION ENGINE (pure, decoupled from UI/DOM)
+   ============================================================ */
+function getExpenseShares(expense){
+  const {amount, participants, splitType, customShares} = expense;
+  if(splitType === 'custom' && customShares) return {...customShares};
+  const n = participants.length;
+  if(n===0) return {};
+  const base = Math.floor(amount/n);
+  const remainder = amount - base*n;
+  const shares = {};
+  participants.forEach((id,idx)=>{ shares[id] = base + (idx<remainder?1:0); });
+  return shares;
+}
+function calculatePersonTotals(trip){
+  const totals = {};
+  trip.participants.forEach(p=> totals[p.id] = {paid:0, owed:0});
+  trip.expenses.forEach(exp=>{
+    if(!totals[exp.paidBy]) totals[exp.paidBy] = {paid:0, owed:0};
+    totals[exp.paidBy].paid += exp.amount;
+    const shares = getExpenseShares(exp);
+    Object.entries(shares).forEach(([pid,amt])=>{
+      if(!totals[pid]) totals[pid] = {paid:0,owed:0};
+      totals[pid].owed += amt;
+    });
+  });
+  return totals;
+}
+function calculateNetBalances(trip){
+  const totals = calculatePersonTotals(trip);
+  const balances = {};
+  Object.entries(totals).forEach(([id,t])=> balances[id] = t.paid - t.owed);
+  return balances;
+}
+function calculateSettlements(balances){
+  let creditors=[], debtors=[];
+  Object.entries(balances).forEach(([id,amt])=>{
+    if(amt>0) creditors.push({id,amt});
+    else if(amt<0) debtors.push({id,amt:-amt});
+  });
+  creditors.sort((a,b)=>b.amt-a.amt);
+  debtors.sort((a,b)=>b.amt-a.amt);
+  const results=[]; let i=0,j=0;
+  while(i<debtors.length && j<creditors.length){
+    const amt = Math.min(debtors[i].amt, creditors[j].amt);
+    if(amt>0) results.push({from:debtors[i].id, to:creditors[j].id, amount:amt});
+    debtors[i].amt -= amt; creditors[j].amt -= amt;
+    if(debtors[i].amt===0) i++;
+    if(creditors[j].amt===0) j++;
+  }
+  return results;
+}
+function calculateTripSummary(trip){
+  const totals = calculatePersonTotals(trip);
+  const balances = calculateNetBalances(trip);
+  const totalSpent = trip.expenses.reduce((s,e)=>s+e.amount,0);
+  const settlements = calculateSettlements(balances);
+  return {totals, balances, totalSpent, settlements};
+}
+
+/* ============================================================
+   SAMPLE DATA — used ONLY for the explicit "Continue with demo
+   data" development mode. Never used as a silent fallback.
+   ============================================================ */
+function makeSampleData(){
+  const people = ['Nimish','Rahul','Amit','Neha','Rohan'].map(name=>({id:uid('p'), name}));
+  const [nimish,rahul,amit,neha,rohan] = people;
+  const all = people.map(p=>p.id);
+  const allBut = (...excl) => all.filter(id=>!excl.map(p=>p.id).includes(id));
+  const expenses = [
+    {description:'Hotel', amount:6000, paidBy:nimish.id, participants:all, category:'Accommodation', date:'2026-08-08', notes:'2 nights'},
+    {description:'Dinner', amount:2400, paidBy:rahul.id, participants:all, category:'Food', date:'2026-08-08', notes:''},
+    {description:'Fuel', amount:1200, paidBy:amit.id, participants:allBut(rohan), category:'Transport', date:'2026-08-09', notes:''},
+    {description:'Beach activity', amount:2500, paidBy:neha.id, participants:all, category:'Activities', date:'2026-08-09', notes:''},
+    {description:'Lunch', amount:1800, paidBy:rohan.id, participants:all, category:'Food', date:'2026-08-09', notes:''},
+    {description:'Tickets', amount:3500, paidBy:nimish.id, participants:all, category:'Tickets', date:'2026-08-10', notes:''},
+    {description:'Coffee', amount:750, paidBy:rahul.id, participants:[nimish.id,rahul.id,amit.id], category:'Food', date:'2026-08-10', notes:'Paid cash'},
+  ].map(e=>({id:uid('e'), tripId:null, splitType:'equal', customShares:null, createdAt:Date.now(), ...e}));
+  const tripId = uid('t');
+  expenses.forEach(e=> e.tripId = tripId);
+  const trip1 = {id:tripId, name:'Goa Weekend', startDate:'2026-08-08', endDate:'2026-08-10', participants:people, expenses};
+
+  const p2 = ['Nimish','Rahul','Amit','Neha'].map(name=>({id:uid('p'), name}));
+  const trip2 = {id:uid('t'), name:'Lonavala Weekend', startDate:'2026-08-15', endDate:'2026-08-16', participants:p2, expenses:[
+    {id:uid('e'), tripId:null, description:'Resort', amount:8000, paidBy:p2[0].id, participants:p2.map(p=>p.id), splitType:'equal', customShares:null, category:'Accommodation', date:'2026-08-15', notes:'', createdAt:Date.now()},
+    {id:uid('e'), tripId:null, description:'Snacks', amount:1800, paidBy:p2[1].id, participants:p2.map(p=>p.id), splitType:'equal', customShares:null, category:'Food', date:'2026-08-15', notes:'', createdAt:Date.now()},
+  ]};
+  trip2.expenses.forEach(e=> e.tripId = trip2.id);
+  return [trip1, trip2];
+}
+
+/* ============================================================
+   CONFIGURATION
+   This file has no build step, so there's no bundler-style
+   environment-variable support. The Apps Script Web App URL is
+   configured as a single constant below, and can also be set or
+   changed at runtime from the connection-status pill (saved to
+   localStorage, which always takes priority over the constant).
+   ============================================================ */
+const SPREADSHEET_API_URL = ""; // <-- paste your deployed Apps Script Web App URL here
+const LS_API_URL_KEY = 'tripsplit_api_url';
+const LS_CACHE_KEY = 'tripsplit_cache_v1';
+
+function getApiUrl(){ return (localStorage.getItem(LS_API_URL_KEY) || SPREADSHEET_API_URL || '').trim(); }
+function setApiUrl(url){
+  if(url && url.trim()) localStorage.setItem(LS_API_URL_KEY, url.trim());
+  else localStorage.removeItem(LS_API_URL_KEY);
+}
+function saveCache(trips){
+  try{ localStorage.setItem(LS_CACHE_KEY, JSON.stringify({trips, savedAt:Date.now()})); }catch(e){}
+}
+function loadCache(){
+  try{ const raw = localStorage.getItem(LS_CACHE_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+
+/* ============================================================
+   SPREADSHEET DATA SERVICE
+   Talks to a Google Apps Script Web App (see accompanying Code.gs
+   file). The UI never calls Apps Script directly — every read or
+   write goes through these functions, so persistence stays a
+   swappable layer independent of both the UI and the calc engine.
+
+   POST requests are sent with no custom headers, which makes the
+   browser treat them as CORS-"simple" requests (Content-Type
+   defaults to text/plain). This intentionally avoids a preflight
+   OPTIONS request, which a stock Apps Script web app doesn't
+   handle. Apps Script parses e.postData.contents as JSON directly,
+   ignoring the text/plain label.
+   ============================================================ */
+async function apiCall(action, {method='GET', payload=null, params={}} = {}){
+  const base = getApiUrl();
+  if(!base) throw new Error('NO_CONFIG');
+  if(method==='GET'){
+    const qs = new URLSearchParams({action, ...params});
+    const url = `${base}${base.includes('?')?'&':'?'}${qs.toString()}`;
+    const res = await fetch(url, {method:'GET'});
+    return parseApiResponse(res);
+  }
+  const res = await fetch(base, {method:'POST', body: JSON.stringify({action, payload})});
+  return parseApiResponse(res);
+}
+async function parseApiResponse(res){
+  let json;
+  try{ json = await res.json(); }
+  catch(e){ throw new Error('BAD_RESPONSE'); }
+  if(!json || json.ok !== true) throw new Error((json && json.error) || 'UNKNOWN_ERROR');
+  return json.data;
+}
+function isConnectivityError(err){
+  const m = err && err.message;
+  return m==='NO_CONFIG' || m==='BAD_RESPONSE' || m==='Failed to fetch' || m==='UNKNOWN_ERROR' || /NetworkError/i.test(m||'');
+}
+function friendlyApiError(err, fallback){
+  const map = {
+    NO_CONFIG: "Spreadsheet isn't connected yet.",
+    BAD_RESPONSE: "Couldn't connect to the spreadsheet.",
+    TRIP_NOT_FOUND: "Trip could not be found.",
+    SHEET_NOT_FOUND: "That trip's sheet could not be found.",
+    MISSING_FIELDS: "Some required details are missing.",
+    INVALID_DATA: "That data isn't valid.",
+    UNKNOWN_ACTION: "Couldn't connect to the spreadsheet.",
+    UNKNOWN_ERROR: "Couldn't connect to the spreadsheet.",
+  };
+  const msg = err && err.message;
+  if(msg && map[msg]) return map[msg];
+  if(msg === 'Failed to fetch' || /NetworkError/i.test(msg||'')) return "Couldn't connect to the spreadsheet.";
+  return fallback || "Something went wrong. Please try again.";
+}
+
+const dataService = {
+  getTrips: () => apiCall('getTrips'),
+  getTrip: (tripId) => apiCall('getTrip', {params:{tripId}}),
+  createTrip: (trip) => apiCall('createTrip', {method:'POST', payload:trip}),
+  updateTrip: (trip) => apiCall('updateTrip', {method:'POST', payload:trip}),
+  deleteTrip: (tripId) => apiCall('deleteTrip', {method:'POST', payload:{tripId}}),
+  createExpense: (tripId, expense, overview) => apiCall('createExpense', {method:'POST', payload:{tripId, expense, overview}}),
+  updateExpense: (tripId, expenseId, expense, overview) => apiCall('updateExpense', {method:'POST', payload:{tripId, expenseId, expense, overview}}),
+  deleteExpense: (tripId, expenseId, overview) => apiCall('deleteExpense', {method:'POST', payload:{tripId, expenseId, overview}}),
+};
+function summarizeForOverview(trip){
+  const {totalSpent, settlements} = calculateTripSummary(trip);
+  const toSettle = settlements.reduce((s,x)=>s+x.amount,0);
+  return {totalSpent, settlementStatus: settlements.length===0 ? 'Settled' : `${fmt(toSettle)} to settle`};
+}
+
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+const state = {
+  trips: [],
+  view: 'list',
+  currentTripId: null,
+  viewingAsMap: {},
+  dashboardTab: 'expenses',
+  phase: 'boot',          // boot | config | loading | ready | fatal
+  syncStatus: 'offline',  // synced | syncing | offline | error
+  syncMessage: '',
+  usingCache: false,      // true = showing last-known cache after a failed live load (read-only)
+  devMode: false,         // true = explicit "Continue with demo data" (local only, never synced)
+  bootError: '',
+};
+let pendingDelete = null;
+let tripModalDraft = null;   // {editingId, people:[{id,name}]}
+let expenseModalDraft = null; // {editingId}
+
+function currentTrip(){ return state.trips.find(t=>t.id===state.currentTripId) || null; }
+function personName(trip, id){ return trip.participants.find(p=>p.id===id)?.name || '?'; }
+function canMutate(){ return state.phase==='ready' && !state.usingCache; }
+function setSyncStatus(status, message){ state.syncStatus = status; state.syncMessage = message||''; render(); }
+function guardOfflineWrite(){
+  if(state.usingCache){ toast("Can't save while offline. Reconnect to make changes."); return true; }
+  return false;
+}
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+function toast(msg){
+  const root = document.getElementById('toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `${icon('check',14)} <span>${esc(msg)}</span>`;
+  root.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 2200);
+}
+
+/* ============================================================
+   MODAL SHELL
+   ============================================================ */
+function closeModal(){
+  document.getElementById('modal-root').innerHTML = '';
+  tripModalDraft = null; expenseModalDraft = null; pendingDelete = null;
+}
+function openModalShell(title, bodyHtml, wide){
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal ${wide?'wide':''}">
+        <div class="modal-head">
+          <h3 class="disp" style="font-size:18px;font-weight:600;margin:0;">${esc(title)}</h3>
+          <button class="icon-btn" onclick="closeModal()">${icon('x',18,'#75798A')}</button>
+        </div>
+        <div class="modal-body">${bodyHtml}</div>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   RENDER: ROOT
+   ============================================================ */
+function render(){
+  const app = document.getElementById('app');
+  if(state.phase==='config'){ app.innerHTML = renderConfigScreen(); return; }
+  if(state.phase==='loading'){ app.innerHTML = renderLoadingScreen(); return; }
+  if(state.phase==='fatal'){ app.innerHTML = renderFatalScreen(); return; }
+  app.innerHTML = state.view==='trip' && currentTrip() ? renderTripDashboard(currentTrip()) : renderTripsScreen();
+}
+
+/* ---------- Connection status pill ---------- */
+function renderSyncPill(){
+  let dot = 'var(--rust)', label = 'Offline';
+  if(state.devMode){ dot = 'var(--muted)'; label = 'Demo data'; }
+  else if(state.syncStatus==='syncing'){ dot = 'var(--muted)'; label = state.syncMessage || 'Syncing…'; }
+  else if(state.syncStatus==='synced' && !state.usingCache){ dot = 'var(--moss)'; label = 'Synced'; }
+  else if(state.usingCache){ dot = 'var(--rust)'; label = 'Offline · cached data'; }
+  else if(state.syncStatus==='error'){ dot = 'var(--rust)'; label = state.syncMessage || 'Spreadsheet unavailable'; }
+  return `
+    <button onclick="openConnectionSettings()" title="Connection settings" style="display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;">
+      <span style="width:7px;height:7px;border-radius:999px;background:${dot};display:inline-block;flex:none;"></span>${esc(label)}
+    </button>`;
+}
+
+/* ---------- Boot screens: config / loading / fatal ---------- */
+function renderConfigScreen(){
+  return `
+    <div class="wrap" style="max-width:480px;">
+      <div style="margin:40px 0 24px;">
+        <h1 class="disp" style="font-size:26px;font-weight:700;margin:0;">Connect your spreadsheet</h1>
+        <p class="muted" style="font-size:14px;margin:8px 0 0;">TripSplit stores your trips in a Google Sheet through a small Apps Script backend. Paste your deployed Web App URL to get started.</p>
+      </div>
+      <div class="card" style="padding:16px;margin-bottom:16px;">
+        <label class="field-label">APPS SCRIPT WEB APP URL</label>
+        <input id="cfg-url" class="input" placeholder="https://script.google.com/macros/s/.../exec" value=""/>
+        <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="submitApiUrl()">Connect</button>
+      </div>
+      <button class="btn btn-ghost btn-block" onclick="useDemoData()">Continue with demo data</button>
+      <p class="muted" style="font-size:12px;margin-top:8px;text-align:center;">Demo data stays on this device only and is never written to a spreadsheet.</p>
+    </div>`;
+}
+function renderLoadingScreen(){
+  return `
+    <div class="wrap" style="max-width:480px;text-align:center;padding-top:96px;">
+      <p class="muted" style="font-size:14px;">${esc(state.syncMessage || 'Loading trips from Google Sheets…')}</p>
+    </div>`;
+}
+function renderFatalScreen(){
+  return `
+    <div class="wrap" style="max-width:480px;">
+      <div style="margin:40px 0 24px;">
+        <h1 class="disp" style="font-size:24px;font-weight:700;margin:0;">Spreadsheet unavailable</h1>
+        <p class="muted" style="font-size:14px;margin:8px 0 0;">${esc(state.bootError || "Couldn't connect to the spreadsheet.")}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-primary btn-block" onclick="retryConnection()">Try again</button>
+        <button class="btn btn-ghost btn-block" onclick="openConnectionSettings()">Change spreadsheet URL</button>
+        <button class="btn btn-ghost btn-block" onclick="useDemoData()">Continue with demo data</button>
+      </div>
+    </div>`;
+}
+function submitApiUrl(){
+  const url = document.getElementById('cfg-url').value.trim();
+  if(!url){ toast('Paste your Apps Script Web App URL first'); return; }
+  setApiUrl(url);
+  boot();
+}
+function openConnectionSettings(){
+  const current = getApiUrl();
+  const body = `
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label class="field-label">APPS SCRIPT WEB APP URL</label>
+        <input id="cs-url" class="input" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(current)}"/>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveConnectionSettings()">Save & reconnect</button>
+      ${current ? `<button class="btn btn-ghost btn-block" onclick="disconnectSheets()">Disconnect</button>` : ''}
+      <button class="btn btn-ghost btn-block" onclick="closeModal(); useDemoData();">Use demo data instead</button>
+    </div>`;
+  openModalShell('Connection settings', body, false);
+}
+function saveConnectionSettings(){
+  const url = document.getElementById('cs-url').value.trim();
+  setApiUrl(url);
+  closeModal();
+  boot();
+}
+function disconnectSheets(){
+  setApiUrl('');
+  closeModal();
+  boot();
+}
+
+/* ---------- Trips (home) screen ---------- */
+function renderTripsScreen(){
+  const cards = state.trips.map(t=>renderTripCard(t)).join('');
+  return `
+    <div class="wrap">
+      <div class="row-between" style="margin-bottom:32px;align-items:flex-start;gap:12px;">
+        <div>
+          <h1 class="disp" style="font-size:30px;font-weight:700;margin:0;">Heathens Expense Tracker</h1>
+          <p class="muted" style="margin:6px 0 0;font-size:14px;">Split trip expenses without the spreadsheet headache.</p>
+        </div>
+        ${renderSyncPill()}
+      </div>
+      ${state.devMode ? `<div style="background:var(--violet-tint);color:var(--violet);font-size:12px;font-weight:600;padding:8px 12px;border-radius:10px;margin-bottom:16px;">Demo mode — changes here aren't saved to a spreadsheet.</div>` : ''}
+      <button class="btn btn-block" style="border:1.5px dashed var(--violet); background:transparent; color:var(--violet); padding:18px; border-radius:16px; margin-bottom:24px;" onclick="showNewTripModal()">
+        ${icon('plus',18)} New Trip
+      </button>
+      ${ state.trips.length===0 ? `
+        <div style="text-align:center; padding:64px 0;">
+          ${icon('receipt',36,'#75798A')}
+          <p class="muted" style="font-size:14px;margin-top:12px;">No trips yet. Create one to get started.</p>
+        </div>` : `
+        <div style="display:grid; grid-template-columns:1fr; gap:16px;" class="trip-grid">${cards}</div>
+        <style>@media(min-width:640px){.trip-grid{grid-template-columns:1fr 1fr;}}</style>
+      `}
+    </div>`;
+}
+function renderTripCard(trip){
+  const {totalSpent, settlements} = calculateTripSummary(trip);
+  const settled = settlements.length===0;
+  const toSettle = settlements.reduce((s,x)=>s+x.amount,0);
+  return `
+    <button class="card stub" style="text-align:left; width:100%; padding:20px; cursor:pointer;" onclick="openTrip('${trip.id}')">
+      <div class="row-between" style="align-items:flex-start;">
+        <div>
+          <h3 class="disp" style="font-size:18px; font-weight:600; margin:0;">${esc(trip.name)}</h3>
+          <p class="muted" style="font-size:14px; margin:3px 0 0;">${fmtRange(trip.startDate, trip.endDate)}</p>
+        </div>
+        <span style="background:var(--violet-tint); color:var(--violet); font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:4px;">
+          ${icon('users',12)} ${trip.participants.length}
+        </span>
+      </div>
+      <div class="row-between" style="align-items:flex-end; margin-top:20px; padding-top:16px; border-top:1px dashed var(--line);">
+        <div>
+          <p class="muted" style="font-size:12px; margin:0;">Spent</p>
+          <p class="mono" style="font-size:20px; font-weight:600; margin:2px 0 0;">${fmt(totalSpent)}</p>
+        </div>
+        <span style="font-size:14px; font-weight:600; color:${settled?'var(--moss)':'var(--rust)'};">
+          ${settled ? 'Settled' : `${fmt(toSettle)} to settle`}
+        </span>
+      </div>
+    </button>`;
+}
+
+/* ---------- Trip dashboard ---------- */
+function renderTripDashboard(trip){
+  const summary = calculateTripSummary(trip);
+  const viewingAs = state.viewingAsMap[trip.id] || trip.participants[0]?.id;
+  const you = summary.totals[viewingAs] || {paid:0, owed:0};
+  const youBal = summary.balances[viewingAs] || 0;
+
+  const optionsHtml = trip.participants.map(p=>`<option value="${p.id}" ${p.id===viewingAs?'selected':''}>${esc(p.name)}</option>`).join('');
+
+  const summaryCards = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px;" class="sum-grid">
+      ${summaryCard('Total Spent', fmt(summary.totalSpent))}
+      ${summaryCard('You Paid', fmt(you.paid))}
+      ${summaryCard('Your Share', fmt(you.owed))}
+      ${summaryCard('You', youBal===0?'Settled':fmt(Math.abs(youBal)), youBal===0?null:(youBal>0?'to receive':'to pay'), youBal===0?null:(youBal>0?'pos':'neg'))}
+    </div>
+    <style>@media(min-width:640px){.sum-grid{grid-template-columns:repeat(4,1fr);}}</style>`;
+
+  const tabsHtml = `
+    <div class="segtabs">
+      <button class="${state.dashboardTab==='expenses'?'active':''}" onclick="setDashboardTab('expenses')">Expenses</button>
+      <button class="${state.dashboardTab==='summary'?'active':''}" onclick="setDashboardTab('summary')">Summary</button>
+    </div>`;
+
+  const bodyHtml = state.dashboardTab==='expenses' ? renderExpensesList(trip) : renderSummaryTab(trip, summary);
+
+  return `
+    <div class="wrap">
+      <div class="row-between" style="align-items:center;margin-bottom:16px;">
+        <button class="muted" style="background:none;border:none;font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:6px;padding:0;" onclick="backToList()">
+          ${icon('arrowLeft',15)} All trips
+        </button>
+        ${renderSyncPill()}
+      </div>
+      <div class="row-between" style="align-items:flex-start;">
+        <div>
+          <h1 class="disp" style="font-size:26px; font-weight:700; margin:0;">${esc(trip.name)}</h1>
+          <p class="muted" style="font-size:14px; margin:4px 0 0;">${fmtRange(trip.startDate,trip.endDate)} · ${trip.participants.length} people</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="icon-btn" style="border:1px solid var(--line);" onclick="showEditTripModal('${trip.id}')">${icon('pencil',15,'#75798A')}</button>
+          <button class="icon-btn" style="border:1px solid var(--line);" onclick="deleteTripConfirm('${trip.id}')">${icon('trash',15,'#E0562F')}</button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; margin:16px 0 20px;">
+        <span class="muted" style="font-size:14px;">Viewing as</span>
+        <div style="position:relative;">
+          <select class="select" style="appearance:none; width:auto; margin:0; padding:6px 30px 6px 14px; border-radius:999px; border-color:var(--violet); color:var(--violet); font-weight:600; font-size:14px;" onchange="setViewingAs('${trip.id}', this.value)">
+            ${optionsHtml}
+          </select>
+        </div>
+      </div>
+
+      <div style="display:none; gap:8px; margin-bottom:24px;" class="desktop-actions">
+        <button class="btn btn-primary" onclick="showAddExpenseModal()">${icon('plus',15)} Add Expense</button>
+        <button class="btn btn-ghost" onclick="showSettlement()">${icon('wallet',15)} Settle Up</button>
+      </div>
+      <style>@media(min-width:640px){.desktop-actions{display:flex !important;}}</style>
+
+      ${summaryCards}
+      ${tabsHtml}
+      ${bodyHtml}
+
+      <div class="mobile-cta" style="position:fixed; left:16px; right:16px; bottom:20px; display:flex; gap:8px;">
+        <button class="btn btn-ghost" style="flex:1; justify-content:center; padding:14px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.12);" onclick="showSettlement()">${icon('wallet',16)} Settle Up</button>
+        <button class="btn btn-primary" style="flex:1.3; justify-content:center; padding:14px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.12);" onclick="showAddExpenseModal()">${icon('plus',16)} Add Expense</button>
+      </div>
+      <style>@media(min-width:640px){.mobile-cta{display:none !important;}}</style>
+    </div>`;
+}
+function summaryCard(label, value, sub, tone){
+  const color = tone==='pos' ? 'var(--moss)' : tone==='neg' ? 'var(--rust)' : 'var(--ink)';
+  return `
+    <div class="card" style="padding:16px;">
+      <p class="muted" style="font-size:12px; font-weight:500; margin:0;">${esc(label)}</p>
+      <p class="mono" style="font-size:20px; font-weight:600; margin:4px 0 0; color:${color};">${value}</p>
+      ${sub?`<p style="font-size:12px; margin:2px 0 0; color:${color};">${esc(sub)}</p>`:''}
+    </div>`;
+}
+function renderExpensesList(trip){
+  if(trip.expenses.length===0){
+    return `
+      <div style="text-align:center; padding:64px 0;">
+        ${icon('receipt',32,'#75798A')}
+        <p style="font-size:14px; font-weight:600; margin:12px 0 0;">No expenses yet</p>
+        <p class="muted" style="font-size:14px; margin:4px 0 0;">Add your first expense to get started.</p>
+      </div>`;
+  }
+  const rows = [...trip.expenses].sort((a,b)=> a.date<b.date?1:-1).map(e=>{
+    const payer = personName(trip, e.paidBy);
+    return `
+      <button class="card" style="width:100%; text-align:left; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;" onclick="showExpenseDetails('${e.id}')">
+        <div>
+          <p style="font-size:14px; font-weight:600; margin:0;">${esc(e.description)}</p>
+          <p class="muted" style="font-size:12px; margin:3px 0 0;">${esc(payer)} paid · ${e.participants.length} ${e.participants.length===1?'person':'people'}</p>
+        </div>
+        <div style="text-align:right;">
+          <p class="mono" style="font-size:14px; font-weight:600; margin:0;">${fmt(e.amount)}</p>
+          <p class="muted" style="font-size:12px; margin:3px 0 0;">${fmtDate(e.date)}</p>
+        </div>
+      </button>`;
+  }).join('');
+  return `<div>${rows}</div>`;
+}
+function renderSummaryTab(trip, summary){
+  const sections = [
+    {title:'Spending by person', get:(id)=>summary.totals[id]?.paid||0, signed:false},
+    {title:'Actual share', get:(id)=>summary.totals[id]?.owed||0, signed:false},
+    {title:'Net balance', get:(id)=>summary.balances[id]||0, signed:true},
+  ];
+  const sectionsHtml = sections.map(sec=>{
+    const rows = trip.participants.map(p=>{
+      const val = sec.get(p.id);
+      const color = sec.signed ? (val>0?'var(--moss)':val<0?'var(--rust)':'var(--muted)') : 'var(--ink)';
+      return `
+        <div class="row-between" style="padding:10px 16px;">
+          <span style="font-size:14px;">${esc(p.name)}</span>
+          <span class="mono" style="font-size:14px; font-weight:600; color:${color};">${sec.signed && val>0?'+':''}${fmt(val)}</span>
+        </div>`;
+    }).join('<div style="border-top:1px solid var(--line);"></div>');
+    return `
+      <div style="margin-bottom:20px;">
+        <p class="muted" style="font-size:11px; font-weight:600; margin-bottom:8px;">${sec.title.toUpperCase()}</p>
+        <div class="card">${rows}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="card" style="padding:16px; margin-bottom:20px;">
+      <p class="muted" style="font-size:11px; font-weight:600; margin:0 0 4px;">TOTAL TRIP SPEND</p>
+      <p class="mono" style="font-size:24px; font-weight:600; margin:0;">${fmt(summary.totalSpent)}</p>
+    </div>
+    ${sectionsHtml}`;
+}
+
+/* ============================================================
+   NAVIGATION ACTIONS
+   ============================================================ */
+function openTrip(id){
+  state.currentTripId = id;
+  state.view = 'trip';
+  state.dashboardTab = 'expenses';
+  if(!state.viewingAsMap[id]){
+    const t = state.trips.find(x=>x.id===id);
+    state.viewingAsMap[id] = t?.participants[0]?.id;
+  }
+  render();
+}
+function backToList(){ state.view='list'; state.currentTripId=null; render(); }
+function setViewingAs(tripId, personId){ state.viewingAsMap[tripId]=personId; render(); }
+function setDashboardTab(tab){ state.dashboardTab = tab; render(); }
+
+/* ============================================================
+   TRIP MODAL (create / edit)
+   ============================================================ */
+function showNewTripModal(){ if(guardOfflineWrite()) return; openTripModal(null); }
+function showEditTripModal(tripId){ if(guardOfflineWrite()) return; openTripModal(state.trips.find(t=>t.id===tripId)); }
+
+function openTripModal(editing){
+  tripModalDraft = { editingId: editing?editing.id:null, people: editing ? editing.participants.map(p=>({...p})) : [] };
+  const body = `
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div>
+        <label class="field-label">TRIP NAME</label>
+        <input id="tm-name" class="input" placeholder="e.g. Goa Weekend" value="${editing?esc(editing.name):''}" oninput="tripModalValidate()"/>
+      </div>
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label class="field-label">START DATE</label>
+          <input id="tm-start" type="date" class="input" value="${editing?editing.startDate:''}"/>
+        </div>
+        <div style="flex:1;">
+          <label class="field-label">END DATE</label>
+          <input id="tm-end" type="date" class="input" value="${editing?editing.endDate:''}"/>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">PEOPLE</label>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <input id="tm-person" class="input" style="margin:0;" placeholder="Add a name and press Enter" onkeydown="if(event.key==='Enter'){event.preventDefault(); tripModalAddPerson();}"/>
+          <button class="btn btn-ghost" style="white-space:nowrap;" onclick="tripModalAddPerson()">Add</button>
+        </div>
+        <div id="tm-chips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;"></div>
+      </div>
+      <button id="tm-save" class="btn btn-primary btn-block" onclick="saveTripFromModal()">${editing?'Save changes':'Create trip'}</button>
+    </div>`;
+  openModalShell(editing?'Edit trip':'New trip', body, false);
+  renderTripChips();
+  tripModalValidate();
+}
+function renderTripChips(){
+  const box = document.getElementById('tm-chips');
+  if(!box) return;
+  if(tripModalDraft.people.length===0){
+    box.innerHTML = `<span class="muted" style="font-size:14px;">No one added yet</span>`;
+    return;
+  }
+  box.innerHTML = tripModalDraft.people.map(p=>`
+    <span class="chip active">${esc(p.name)}<span class="x" onclick="tripModalRemovePerson('${p.id}')">${icon('x',12)}</span></span>
+  `).join('');
+}
+function tripModalAddPerson(){
+  const input = document.getElementById('tm-person');
+  const name = input.value.trim();
+  if(!name) return;
+  tripModalDraft.people.push({id:uid('p'), name});
+  input.value='';
+  renderTripChips();
+  tripModalValidate();
+}
+function tripModalRemovePerson(id){
+  tripModalDraft.people = tripModalDraft.people.filter(p=>p.id!==id);
+  renderTripChips();
+  tripModalValidate();
+}
+function tripModalValidate(){
+  const name = document.getElementById('tm-name')?.value.trim();
+  const ok = name && tripModalDraft.people.length>=1;
+  const btn = document.getElementById('tm-save');
+  if(btn) btn.disabled = !ok;
+}
+function tripDatesValid(startDate, endDate){ return !(startDate && endDate && startDate > endDate); }
+
+async function saveTripFromModal(){
+  const name = document.getElementById('tm-name').value.trim();
+  const startDate = document.getElementById('tm-start').value;
+  const endDate = document.getElementById('tm-end').value;
+  const people = tripModalDraft.people;
+  if(!name || people.length===0) return;
+  if(!tripDatesValid(startDate, endDate)){ toast("End date can't be before start date"); return; }
+  if(guardOfflineWrite()) return;
+
+  const isEdit = !!tripModalDraft.editingId;
+
+  if(state.devMode){
+    if(isEdit){
+      const t = state.trips.find(x=>x.id===tripModalDraft.editingId);
+      t.name=name; t.startDate=startDate; t.endDate=endDate; t.participants=people;
+      closeModal(); render(); toast('Trip updated (demo — not saved to Sheets)');
+    } else {
+      const newTrip = {id:uid('t'), name, startDate, endDate, participants:people, expenses:[]};
+      state.trips.unshift(newTrip);
+      closeModal(); toast('Trip created (demo — not saved to Sheets)'); openTrip(newTrip.id);
+    }
+    return;
+  }
+
+  const btn = document.getElementById('tm-save');
+  if(btn){ btn.disabled = true; btn.textContent = isEdit ? 'Saving…' : 'Creating trip…'; }
+  setSyncStatus('syncing', isEdit ? 'Saving…' : 'Creating trip…');
+  try{
+    if(isEdit){
+      const updated = await dataService.updateTrip({tripId: tripModalDraft.editingId, name, startDate, endDate, participants: people});
+      const t = state.trips.find(x=>x.id===updated.id);
+      Object.assign(t, updated);
+      setSyncStatus('synced'); saveCache(state.trips);
+      closeModal(); render(); toast('Trip updated');
+    } else {
+      const created = await dataService.createTrip({name, startDate, endDate, participants: people});
+      state.trips.unshift(created);
+      setSyncStatus('synced'); saveCache(state.trips);
+      closeModal(); toast('Trip created'); openTrip(created.id);
+    }
+  }catch(err){
+    setSyncStatus(isConnectivityError(err) ? 'error' : 'synced');
+    toast(friendlyApiError(err, "Couldn't save this trip. Please try again."));
+    if(btn){ btn.disabled = false; btn.textContent = isEdit ? 'Save changes' : 'Create trip'; }
+  }
+}
+function deleteTripConfirm(tripId){
+  if(guardOfflineWrite()) return;
+  const t = state.trips.find(x=>x.id===tripId);
+  pendingDelete = {type:'trip', id:tripId};
+  openConfirmModal('Delete trip?', `This permanently removes "${t.name}" and all of its expenses.`, async ()=>{
+    if(state.devMode){
+      state.trips = state.trips.filter(x=>x.id!==tripId);
+      closeModal(); backToList(); toast('Trip deleted (demo — not saved to Sheets)');
+      return;
+    }
+    const yesBtn = document.getElementById('confirm-yes');
+    if(yesBtn){ yesBtn.disabled = true; yesBtn.textContent = 'Deleting…'; }
+    setSyncStatus('syncing', 'Deleting trip…');
+    try{
+      await dataService.deleteTrip(tripId);
+      state.trips = state.trips.filter(x=>x.id!==tripId);
+      setSyncStatus('synced'); saveCache(state.trips);
+      closeModal(); backToList(); toast('Trip deleted');
+    }catch(err){
+      setSyncStatus(isConnectivityError(err) ? 'error' : 'synced');
+      toast(friendlyApiError(err, "Couldn't delete this trip. Please try again."));
+      if(yesBtn){ yesBtn.disabled = false; yesBtn.textContent = 'Delete'; }
+    }
+  });
+}
+
+/* ============================================================
+   EXPENSE MODAL (add / edit)
+   ============================================================ */
+function showAddExpenseModal(){ if(guardOfflineWrite()) return; openExpenseModal(null); }
+function showEditExpenseModal(expenseId){
+  if(guardOfflineWrite()) return;
+  const trip = currentTrip();
+  const exp = trip.expenses.find(e=>e.id===expenseId);
+  openExpenseModal(exp);
+}
+function openExpenseModal(editing){
+  const trip = currentTrip();
+  expenseModalDraft = {
+    editingId: editing?editing.id:null,
+    selected: editing ? [...editing.participants] : trip.participants.map(p=>p.id),
+    splitType: editing ? editing.splitType : 'equal',
+    customAmounts: editing && editing.customShares ? {...editing.customShares} : {},
+  };
+  const participantOptions = trip.participants.map(p=>`<option value="${p.id}" ${editing&&editing.paidBy===p.id?'selected':(!editing&&p.id===trip.participants[0].id?'selected':'')}>${esc(p.name)}</option>`).join('');
+  const categoryOptions = CATEGORIES.map(c=>`<option value="${c}" ${editing&&editing.category===c?'selected':''}>${c}</option>`).join('');
+
+  const body = `
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div>
+        <label class="field-label">WHAT WAS IT FOR?</label>
+        <input id="em-desc" class="input" placeholder="Hotel, dinner, fuel..." value="${editing?esc(editing.description):''}" oninput="expenseModalValidate()"/>
+      </div>
+      <div>
+        <label class="field-label">AMOUNT</label>
+        <div class="input" style="display:flex; align-items:center; margin-top:6px;">
+          <span class="mono" style="margin-right:4px; color:var(--muted); font-size:18px;">₹</span>
+          <input id="em-amount" type="number" style="border:none; outline:none; width:100%; font-size:18px;" class="mono" placeholder="0" value="${editing?editing.amount:''}" oninput="expenseModalUpdate()"/>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">PAID BY</label>
+        <select id="em-paidby" class="select">${participantOptions}</select>
+      </div>
+      <div>
+        <label class="field-label">SPLIT BETWEEN</label>
+        <div id="em-chips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;"></div>
+      </div>
+      <div class="tabbar" id="em-splittabs">
+        <button class="${expenseModalDraft.splitType==='equal'?'active':''}" data-t="equal" onclick="expenseModalSetSplitType('equal')">Equal</button>
+        <button class="${expenseModalDraft.splitType==='custom'?'active':''}" data-t="custom" onclick="expenseModalSetSplitType('custom')">Custom</button>
+      </div>
+      <div id="em-splitpreview"></div>
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label class="field-label">CATEGORY (OPTIONAL)</label>
+          <select id="em-category" class="select"><option value="">None</option>${categoryOptions}</select>
+        </div>
+        <div style="flex:1;">
+          <label class="field-label">DATE</label>
+          <input id="em-date" type="date" class="input" value="${editing?editing.date:(trip.startDate||'')}"/>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">NOTES (OPTIONAL)</label>
+        <input id="em-notes" class="input" placeholder="Paid cash, 2 nights..." value="${editing?esc(editing.notes||''):''}"/>
+      </div>
+      <button id="em-save" class="btn btn-primary btn-block" onclick="saveExpenseFromModal()">Save expense</button>
+    </div>`;
+  openModalShell(editing?'Edit expense':'Add expense', body, true);
+
+  renderExpenseChips();
+  expenseModalUpdate();
+}
+function renderExpenseChips(){
+  const trip = currentTrip();
+  const box = document.getElementById('em-chips');
+  box.innerHTML = trip.participants.map(p=>{
+    const active = expenseModalDraft.selected.includes(p.id);
+    return `<span class="chip ${active?'active':''}" style="cursor:pointer;" onclick="expenseModalToggleParticipant('${p.id}')">${esc(p.name)}</span>`;
+  }).join('');
+}
+function expenseModalToggleParticipant(id){
+  const i = expenseModalDraft.selected.indexOf(id);
+  if(i>=0) expenseModalDraft.selected.splice(i,1); else expenseModalDraft.selected.push(id);
+  renderExpenseChips();
+  expenseModalUpdate();
+}
+function expenseModalSetSplitType(t){
+  expenseModalDraft.splitType = t;
+  document.querySelectorAll('#em-splittabs button').forEach(b=> b.classList.toggle('active', b.dataset.t===t));
+  expenseModalUpdate();
+}
+function expenseModalUpdate(){
+  const trip = currentTrip();
+  const amt = parseInt(document.getElementById('em-amount')?.value || '0', 10) || 0;
+  const selected = expenseModalDraft.selected;
+  const preview = document.getElementById('em-splitpreview');
+
+  if(expenseModalDraft.splitType==='equal'){
+    if(selected.length===0 || amt===0){
+      preview.innerHTML = `<div class="card" style="padding:12px; background:var(--paper);"><p class="muted" style="font-size:14px; margin:0;">Enter an amount and pick who's splitting it.</p></div>`;
+    } else {
+      const n = selected.length;
+      const base = Math.floor(amt/n);
+      const remainder = amt - base*n;
+      const rows = selected.map((id,idx)=>{
+        const share = base + (idx<remainder?1:0);
+        return `<div class="row-between" style="font-size:14px; padding:3px 0;"><span>${esc(personName(trip,id))}</span><span class="mono" style="font-weight:600;">${fmt(share)}</span></div>`;
+      }).join('');
+      preview.innerHTML = `<div class="card" style="padding:12px; background:var(--paper);">${rows}</div>`;
+    }
+  } else {
+    const rows = selected.map(id=>{
+      const val = expenseModalDraft.customAmounts[id] ?? '';
+      return `
+        <div class="row-between" style="gap:8px; margin-bottom:6px;">
+          <span style="font-size:14px;">${esc(personName(trip,id))}</span>
+          <div class="input" style="width:auto; margin:0; display:flex; align-items:center; padding:6px 10px;">
+            <span class="mono" style="margin-right:3px; color:var(--muted); font-size:14px;">₹</span>
+            <input type="number" class="mono" style="border:none; outline:none; width:80px; text-align:right; font-size:14px;" value="${val}" oninput="expenseModalCustomChange('${id}', this.value)"/>
+          </div>
+        </div>`;
+    }).join('');
+    const total = selected.reduce((s,id)=> s + (parseInt(expenseModalDraft.customAmounts[id]||0,10)||0), 0);
+    const matches = total===amt;
+    preview.innerHTML = `
+      <div class="card" style="padding:12px; background:var(--paper);">
+        ${rows}
+        <div class="row-between" style="padding-top:8px; margin-top:4px; border-top:1px solid var(--line); font-size:14px; font-weight:600;">
+          <span>Total</span>
+          <span class="mono" style="color:${matches?'var(--moss)':'var(--rust)'};">${fmt(total)} / ${fmt(amt)}</span>
+        </div>
+        ${!matches?`<div style="display:flex; align-items:center; gap:6px; color:var(--rust); font-size:12px; font-weight:500; margin-top:6px;">${icon('alert',13)} Split doesn't add up</div>`:''}
+      </div>`;
+  }
+  expenseModalValidate();
+}
+function expenseModalCustomChange(id, val){
+  expenseModalDraft.customAmounts[id] = val;
+  expenseModalUpdate();
+}
+function expenseModalValidate(){
+  const desc = document.getElementById('em-desc')?.value.trim();
+  const amt = parseInt(document.getElementById('em-amount')?.value || '0', 10) || 0;
+  const selected = expenseModalDraft.selected;
+  let ok = desc && amt>0 && selected.length>0;
+  if(ok && expenseModalDraft.splitType==='custom'){
+    const total = selected.reduce((s,id)=> s + (parseInt(expenseModalDraft.customAmounts[id]||0,10)||0), 0);
+    ok = total===amt;
+  }
+  const btn = document.getElementById('em-save');
+  if(btn) btn.disabled = !ok;
+}
+async function saveExpenseFromModal(){
+  const trip = currentTrip();
+  const description = document.getElementById('em-desc').value.trim();
+  const amount = parseInt(document.getElementById('em-amount').value||'0',10)||0;
+  const paidBy = document.getElementById('em-paidby').value;
+  const category = document.getElementById('em-category').value;
+  const date = document.getElementById('em-date').value;
+  const notes = document.getElementById('em-notes').value.trim();
+  const selected = expenseModalDraft.selected;
+  const splitType = expenseModalDraft.splitType;
+
+  if(!description || amount<=0 || !paidBy || selected.length===0) return;
+  let customShares = null;
+  if(splitType==='custom'){
+    customShares = {};
+    selected.forEach(id=> customShares[id] = parseInt(expenseModalDraft.customAmounts[id]||0,10)||0);
+    const total = Object.values(customShares).reduce((a,b)=>a+b,0);
+    if(total!==amount) return;
+  }
+  if(guardOfflineWrite()) return;
+
+  const isEdit = !!expenseModalDraft.editingId;
+  const draft = {description, amount, paidBy, participants:selected, splitType, customShares, category, date, notes};
+
+  if(state.devMode){
+    if(isEdit){
+      const e = trip.expenses.find(x=>x.id===expenseModalDraft.editingId);
+      Object.assign(e, draft);
+      toast('Expense updated (demo — not saved to Sheets)');
+    } else {
+      trip.expenses.push({id:uid('e'), tripId:trip.id, createdAt:Date.now(), ...draft});
+      toast('Expense added (demo — not saved to Sheets)');
+    }
+    closeModal(); render();
+    return;
+  }
+
+  const btn = document.getElementById('em-save');
+  if(btn){ btn.disabled = true; btn.textContent = 'Saving expense…'; }
+  setSyncStatus('syncing', 'Saving expense…');
+  try{
+    if(isEdit){
+      const tempExpenses = trip.expenses.map(e=> e.id===expenseModalDraft.editingId ? {...e, ...draft} : e);
+      const overview = summarizeForOverview({...trip, expenses: tempExpenses});
+      const updated = await dataService.updateExpense(trip.id, expenseModalDraft.editingId, draft, overview);
+      const idx = trip.expenses.findIndex(x=>x.id===expenseModalDraft.editingId);
+      trip.expenses[idx] = updated;
+      setSyncStatus('synced'); saveCache(state.trips);
+      closeModal(); render(); toast('Expense updated');
+    } else {
+      const tempExpenses = [...trip.expenses, {...draft, id:'__temp__'}];
+      const overview = summarizeForOverview({...trip, expenses: tempExpenses});
+      const created = await dataService.createExpense(trip.id, draft, overview);
+      trip.expenses.push(created);
+      setSyncStatus('synced'); saveCache(state.trips);
+      closeModal(); render(); toast('Expense added');
+    }
+  }catch(err){
+    setSyncStatus(isConnectivityError(err) ? 'error' : 'synced');
+    toast(friendlyApiError(err, "Couldn't save this expense. Please try again."));
+    if(btn){ btn.disabled = false; btn.textContent = 'Save expense'; }
+  }
+}
+
+/* ============================================================
+   EXPENSE DETAILS MODAL
+   ============================================================ */
+function showExpenseDetails(expenseId){
+  const trip = currentTrip();
+  const e = trip.expenses.find(x=>x.id===expenseId);
+  const shares = getExpenseShares(e);
+  const rows = trip.participants.filter(p=>e.participants.includes(p.id)).map(p=>`
+    <div class="row-between" style="font-size:14px; padding:3px 0;"><span>${esc(p.name)}</span><span class="mono" style="font-weight:600;">${fmt(shares[p.id]||0)}</span></div>
+  `).join('');
+  const body = `
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div>
+        <span class="mono" style="font-size:30px; font-weight:600;">${fmt(e.amount)}</span>
+        ${e.category?`<span style="margin-left:8px; font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; background:var(--violet-tint); color:var(--violet);">${esc(e.category)}</span>`:''}
+      </div>
+      <div>
+        <p class="muted" style="font-size:11px; font-weight:600; margin:0;">PAID BY</p>
+        <p style="font-size:14px; margin:4px 0 0;">${esc(personName(trip,e.paidBy))}</p>
+      </div>
+      <div>
+        <p class="muted" style="font-size:11px; font-weight:600; margin:0 0 6px;">SPLIT</p>
+        <div class="card" style="padding:12px; background:var(--paper);">${rows}</div>
+      </div>
+      <div style="display:flex; gap:24px;">
+        <div>
+          <p class="muted" style="font-size:11px; font-weight:600; margin:0;">DATE</p>
+          <p style="font-size:14px; margin:4px 0 0;">${fmtDate(e.date)||'—'}</p>
+        </div>
+        ${e.notes?`<div><p class="muted" style="font-size:11px; font-weight:600; margin:0;">NOTES</p><p style="font-size:14px; margin:4px 0 0;">${esc(e.notes)}</p></div>`:''}
+      </div>
+      <div style="display:flex; gap:8px; padding-top:4px;">
+        <button class="btn btn-ghost btn-block" onclick="editExpenseFromDetails('${e.id}')">${icon('pencil',14)} Edit</button>
+        <button class="btn btn-ghost danger btn-block" onclick="deleteExpenseConfirm('${e.id}')">${icon('trash',14)} Delete</button>
+      </div>
+    </div>`;
+  openModalShell(e.description, body, false);
+}
+function editExpenseFromDetails(expenseId){ showEditExpenseModal(expenseId); }
+function deleteExpenseConfirm(expenseId){
+  if(guardOfflineWrite()) return;
+  const trip = currentTrip();
+  const e = trip.expenses.find(x=>x.id===expenseId);
+  openConfirmModal('Delete expense?', `This permanently removes "${e.description}".`, async ()=>{
+    if(state.devMode){
+      trip.expenses = trip.expenses.filter(x=>x.id!==expenseId);
+      closeModal(); render(); toast('Expense deleted (demo — not saved to Sheets)');
+      return;
+    }
+    const yesBtn = document.getElementById('confirm-yes');
+    if(yesBtn){ yesBtn.disabled = true; yesBtn.textContent = 'Deleting…'; }
+    setSyncStatus('syncing', 'Deleting expense…');
+    try{
+      const tempExpenses = trip.expenses.filter(x=>x.id!==expenseId);
+      const overview = summarizeForOverview({...trip, expenses: tempExpenses});
+      await dataService.deleteExpense(trip.id, expenseId, overview);
+      trip.expenses = tempExpenses;
+      setSyncStatus('synced'); saveCache(state.trips);
+      closeModal(); render(); toast('Expense deleted');
+    }catch(err){
+      setSyncStatus(isConnectivityError(err) ? 'error' : 'synced');
+      toast(friendlyApiError(err, "Couldn't delete this expense. Please try again."));
+      if(yesBtn){ yesBtn.disabled = false; yesBtn.textContent = 'Delete'; }
+    }
+  });
+}
+
+/* ============================================================
+   SETTLEMENT MODAL
+   ============================================================ */
+function showSettlement(){
+  const trip = currentTrip();
+  const {balances, settlements, totalSpent} = calculateTripSummary(trip);
+  const allSettled = settlements.length===0;
+
+  const balanceRows = trip.participants.map(p=>{
+    const bal = balances[p.id]||0;
+    const positive = bal>0, zero = bal===0;
+    const bg = zero ? 'var(--paper)' : positive ? 'var(--moss-tint)' : 'var(--rust-tint)';
+    const color = zero ? 'var(--muted)' : positive ? 'var(--moss)' : 'var(--rust)';
+    return `
+      <div class="row-between" style="padding:10px 12px; border-radius:12px; background:${bg}; margin-bottom:6px;">
+        <span style="font-size:14px; font-weight:500;">${esc(p.name)}</span>
+        <span class="mono" style="font-size:14px; font-weight:600; color:${color};">${zero?'settled':`${positive?'+':'-'}${fmt(Math.abs(bal))}`}</span>
+      </div>`;
+  }).join('');
+
+  const paymentRows = settlements.map(s=>`
+    <div class="row-between" style="padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:8px;">
+      <span style="font-size:14px; font-weight:500; display:flex; align-items:center; gap:8px;">${esc(personName(trip,s.from))} ${icon('arrowRight',14,'#5B34E0')} ${esc(personName(trip,s.to))}</span>
+      <span class="mono" style="font-size:14px; font-weight:600; color:var(--violet);">${fmt(s.amount)}</span>
+    </div>`).join('');
+
+  const body = `
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div style="text-align:center; padding:12px 0;">
+        ${allSettled ? `<div style="font-size:32px;">🎉</div><p class="disp" style="font-size:18px; font-weight:600; margin:8px 0 0;">You're all settled up!</p>`
+                     : `<p class="disp" style="font-size:18px; font-weight:600; margin:0;">Here's what needs to be settled</p>`}
+      </div>
+      <div class="row-between card" style="padding:12px; background:var(--paper);">
+        <span class="muted" style="font-size:14px; font-weight:500;">Total spent</span>
+        <span class="mono" style="font-size:18px; font-weight:600;">${fmt(totalSpent)}</span>
+      </div>
+      <div>
+        <p class="muted" style="font-size:11px; font-weight:600; margin-bottom:8px;">NET POSITION</p>
+        ${balanceRows}
+      </div>
+      ${!allSettled ? `<div><p class="muted" style="font-size:11px; font-weight:600; margin-bottom:8px;">PAYMENTS</p>${paymentRows}</div>` : ''}
+    </div>`;
+  openModalShell('Settle up', body, true);
+}
+
+/* ============================================================
+   CONFIRM DIALOG
+   ============================================================ */
+function openConfirmModal(title, message, onConfirm){
+  const body = `
+    <p class="muted" style="font-size:14px; margin-bottom:20px;">${esc(message)}</p>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-ghost btn-block" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-block" id="confirm-yes">Delete</button>
+    </div>`;
+  openModalShell(title, body, false);
+  document.getElementById('confirm-yes').onclick = onConfirm;
+}
+
+/* ============================================================
+   INIT / BOOT
+   On startup, trips are loaded from Google Sheets — never from
+   makeSampleData() — unless the person explicitly chooses demo
+   data. If the spreadsheet is unreachable, the last successfully
+   loaded snapshot (localStorage) is shown read-only with a clear
+   offline indicator; nothing is silently faked as saved.
+   ============================================================ */
+async function boot(){
+  const url = getApiUrl();
+  if(!url){
+    state.phase = 'config';
+    state.devMode = false;
+    render();
+    return;
+  }
+  await loadFromSheets();
+}
+async function loadFromSheets(){
+  state.phase = 'loading';
+  state.syncMessage = 'Loading trips from Google Sheets…';
+  render();
+  try{
+    const trips = await dataService.getTrips();
+    state.trips = trips;
+    state.phase = 'ready';
+    state.syncStatus = 'synced';
+    state.syncMessage = '';
+    state.usingCache = false;
+    state.devMode = false;
+    saveCache(trips);
+    render();
+  }catch(err){
+    const cache = loadCache();
+    const message = friendlyApiError(err, "Spreadsheet unavailable.");
+    if(cache && cache.trips && cache.trips.length){
+      state.trips = cache.trips;
+      state.phase = 'ready';
+      state.syncStatus = 'error';
+      state.usingCache = true;
+      state.syncMessage = message;
+      state.devMode = false;
+      render();
+      toast('Spreadsheet unavailable — showing cached data');
+    } else {
+      state.phase = 'fatal';
+      state.bootError = message;
+      render();
+    }
+  }
+}
+function retryConnection(){ loadFromSheets(); }
+function useDemoData(){
+  state.trips = makeSampleData();
+  state.phase = 'ready';
+  state.view = 'list';
+  state.currentTripId = null;
+  state.devMode = true;
+  state.usingCache = false;
+  state.syncStatus = 'offline';
+  state.syncMessage = 'Demo data';
+  render();
+}
+boot();
+</script>
+</body>
+</html>
